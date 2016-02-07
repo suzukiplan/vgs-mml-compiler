@@ -2,7 +2,12 @@
 #define INCLUDE_VGSMML_H
 
 #define VGSMML_ERR_SUCCESS 0
-#define VGSMML_ERR_NO_MEMORY 1
+#define VGSMML_ERR_INVALID 1
+#define VGSMML_ERR_FILE_IO 2
+#define VGSMML_ERR_NO_MEMORY 3
+#define VGSMML_ERR_SYNTAX_MACRO 100
+#define VGSMML_ERR_SYNTAX_CHANNEL 101
+#define VGSMML_ERR_SYNTAX_UNKNOWN 102
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,8 +24,15 @@ struct VgsMmlErrorInfo {
     char message[248];
 };
 
+#ifdef _WIN32
+struct VgsBgmData* __stdcall vgsmml_compile_from_file(const char* path, struct VgsMmlErrorInfo* err);
+struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size, struct VgsMmlErrorInfo* err);
+void __stdcall vgsmml_free_bgm_data(struct VgsBgmData* data);
+#else
 struct VgsBgmData* vgsmml_compile_from_file(const char* path, struct VgsMmlErrorInfo* err);
 struct VgsBgmData* vgsmml_compile_from_memory(void* data, size_t size, struct VgsMmlErrorInfo* err);
+void vgsmml_free_bgm_data(struct VgsBgmData* data);
+#endif
 
 #ifdef __cplusplus
 };
