@@ -1143,7 +1143,7 @@ static int merge(struct MML* mml, struct Channel* c2)
         return -1;
     }
     for (cur = mml->ch[0].head; cur; cur = next) {
-        cur = cur->next;
+        next = cur->next;
         free(cur);
     }
     mml->ch[0].head = mml->ch[6].head;
