@@ -1,7 +1,7 @@
 # vgs-mml-compiler
 In memory compiler for VGS MMLs
 
-## Interface (draft)
+## Interface
 ```
 struct VgsBgmData
 {
