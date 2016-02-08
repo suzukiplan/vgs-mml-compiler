@@ -434,6 +434,7 @@ static struct VgsBgmData* phase6(void* raw, size_t size, struct VgsMmlErrorInfo*
         err->code = VGSMML_ERR_NO_MEMORY;
         return NULL;
     }
+    memset(pCmp, 0, cmp_len);
     cmp_status = compress(pCmp, &cmp_len, (const unsigned char*)raw, src_len);
     if (cmp_status != Z_OK) {
         free(pCmp);

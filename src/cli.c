@@ -3,6 +3,7 @@
 
 int main(int argc, char* argv[])
 {
+    FILE* fp;
     struct VgsBgmData* bgm;
     struct VgsMmlErrorInfo err;
     if (argc < 3) {
@@ -18,6 +19,18 @@ int main(int argc, char* argv[])
         }
         return 2;
     }
+    printf("bgm-size: %ld\n", bgm->size);
+    fp = fopen(argv[2], "wb");
+    if (NULL == fp) {
+        puts("file open error.");
+        return 3;
+    }
+    if (bgm->size != fwrite(bgm->data, 1, bgm->size, fp)) {
+        puts("file write error.");
+        fclose(fp);
+        return 4;
+    }
+    fclose(fp);
     vgsmml_free_bgm_data(bgm);
     return 0;
 }
