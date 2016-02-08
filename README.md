@@ -18,6 +18,7 @@ struct VgsMmlErrorInfo
 
 struct VgsBgmData* vgsmml_compile_from_file(const char* path, struct VgsMmlErrorInfo* err);
 struct VgsBgmData* vgsmml_compile_from_memory(void* data, size_t size, struct VgsMmlErrorInfo* err);
+void vgsmml_free_bgm_data(struct VgsBgmData* data);
 ```
 
 ### arguments
