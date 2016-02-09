@@ -1,6 +1,9 @@
 # vgs-mml-compiler
 In memory compiler for VGS MMLs
 
+## License
+[The BSD 2-Clause License](https://github.com/suzukiplan/vgs-mml-compiler/blob/master/LICENSE.txt)
+
 ## Interface
 ```
 struct VgsBgmData
