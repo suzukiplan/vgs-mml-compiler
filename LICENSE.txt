@@ -1,4 +1,4 @@
-SUZUKI PLAN - Video Game System BGM Decoder
+SUZUKI PLAN - Video Game System MML Compiler
 Copyright (c) 2016, Yoji Suzuki
 All rights reserved.
 
