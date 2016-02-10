@@ -2,6 +2,7 @@
 #include <Windows.h>
 #else
 #include <unistd.h>
+#define __stdcall
 #endif
 #include <stdio.h>
 #include <stdlib.h>
