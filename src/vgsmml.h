@@ -27,10 +27,12 @@ struct VgsMmlErrorInfo {
 #ifdef _WIN32
 struct VgsBgmData* __stdcall vgsmml_compile_from_file(const char* path, struct VgsMmlErrorInfo* err);
 struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size, struct VgsMmlErrorInfo* err);
+struct VgsBgmData* __stdcall vgsmml_compile_from_memory2(const void* data, size_t size, struct VgsMmlErrorInfo* err);
 void __stdcall vgsmml_free_bgm_data(struct VgsBgmData* data);
 #else
 struct VgsBgmData* vgsmml_compile_from_file(const char* path, struct VgsMmlErrorInfo* err);
 struct VgsBgmData* vgsmml_compile_from_memory(void* data, size_t size, struct VgsMmlErrorInfo* err);
+struct VgsBgmData* vgsmml_compile_from_memory2(const void* data, size_t size, struct VgsMmlErrorInfo* err);
 void vgsmml_free_bgm_data(struct VgsBgmData* data);
 #endif
 

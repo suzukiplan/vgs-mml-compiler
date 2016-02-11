@@ -144,13 +144,14 @@ struct VgsBgmData* __stdcall vgsmml_compile_from_file(const char* path, struct V
     return result;
 }
 
+/* NOTE: YOU MUST SPECIFY THE NULL TERMINATED STRING TO THE DATA ARGUMENT */
 struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size, struct VgsMmlErrorInfo* err)
 {
     struct VgsBgmData* result;
     int nLine, cLine;
     int i;
     int* pos;
-    char* buf;
+    char* buf = (char*)data;
 
     if (NULL == err) {
         return NULL;
@@ -161,15 +162,12 @@ struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size,
         return NULL;
     }
 
-    /* ensures duplicate memory */
-    buf = (char*)malloc(size + 1);
-    if (NULL == buf) {
-        strcpy(err->message, "no memory");
-        err->code = VGSMML_ERR_NO_MEMORY;
+    /* memory check */
+    if ('\0' != buf[size - 1]) {
+        strcpy(err->message, "needed specify the \'\\0\' terminated string to the data argument.");
+        err->code = VGSMML_ERR_INVALID;
         return NULL;
     }
-    memcpy(buf, data, size);
-    buf[size] = '\0';
 
     /* count line */
     for (nLine = 1, i = 0; buf[i]; i++) {
@@ -180,7 +178,6 @@ struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size,
     if (NULL == (pos = (int*)malloc((nLine + 1) * sizeof(int)))) {
         strcpy(err->message, "no memory");
         err->code = VGSMML_ERR_NO_MEMORY;
-        free(buf);
         return NULL;
     }
 
@@ -207,6 +204,34 @@ struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size,
     /* execute next phase */
     result = phase3(buf, pos, err);
     free(pos);
+    return result;
+}
+
+/* compiles without memory destruction */
+struct VgsBgmData* __stdcall vgsmml_compile_from_memory2(const void* data, size_t size, struct VgsMmlErrorInfo* err)
+{
+    struct VgsBgmData* result;
+    char* buf;
+
+    if (NULL == err) {
+        return NULL;
+    }
+    if (NULL == data || size < 1) {
+        strcpy(err->message, "invalid data size");
+        err->code = VGSMML_ERR_INVALID;
+        return NULL;
+    }
+
+    buf = (char*)malloc(size + 1);
+    if (NULL == buf) {
+        strcpy(err->message, "no memory");
+        err->code = VGSMML_ERR_NO_MEMORY;
+        return NULL;
+    }
+    memcpy(buf, data, size);
+    buf[size] = '\0';
+
+    result = vgsmml_compile_from_memory(buf, size + 1, err);
     free(buf);
     return result;
 }
