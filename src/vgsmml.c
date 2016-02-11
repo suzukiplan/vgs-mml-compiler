@@ -161,6 +161,13 @@ struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size,
         return NULL;
     }
 
+    /* memory check */
+    if ('\0' != ((char*)data)[size - 1]) {
+        strcpy(err->message, "need specify the \'\\0\' terminated string to the data argument.");
+        err->code = VGSMML_ERR_INVALID;
+        return NULL;
+    }
+
     /* count line */
     for (nLine = 1, i = 0; buf[i]; i++) {
         if ('\n' == buf[i]) nLine++;
