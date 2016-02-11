@@ -150,7 +150,7 @@ struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size,
     int nLine, cLine;
     int i;
     int* pos;
-    char* buf = (char*)data;
+    char* buf;
 
     if (NULL == err) {
         return NULL;
@@ -161,12 +161,15 @@ struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size,
         return NULL;
     }
 
-    /* memory check */
-    if ('\0' != ((char*)data)[size - 1]) {
-        strcpy(err->message, "need specify the \'\\0\' terminated string to the data argument.");
-        err->code = VGSMML_ERR_INVALID;
+    /* ensures duplicate memory */
+    buf = (char*)malloc(size + 1);
+    if (NULL == buf) {
+        strcpy(err->message, "no memory");
+        err->code = VGSMML_ERR_NO_MEMORY;
         return NULL;
     }
+    memcpy(buf, data, size);
+    buf[size] = '\0';
 
     /* count line */
     for (nLine = 1, i = 0; buf[i]; i++) {
@@ -177,6 +180,7 @@ struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size,
     if (NULL == (pos = (int*)malloc((nLine + 1) * sizeof(int)))) {
         strcpy(err->message, "no memory");
         err->code = VGSMML_ERR_NO_MEMORY;
+        free(buf);
         return NULL;
     }
 
@@ -203,6 +207,7 @@ struct VgsBgmData* __stdcall vgsmml_compile_from_memory(void* data, size_t size,
     /* execute next phase */
     result = phase3(buf, pos, err);
     free(pos);
+    free(buf);
     return result;
 }
 
