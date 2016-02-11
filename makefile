@@ -8,5 +8,6 @@ vgs2mml: src/vgsmml.c src/vgsmml.h src/cli.c vgs-bgm-decoder/src/miniz.c vgs-bgm
 test: all
 	test "`./vgs2mml ./test/test-error-undefined-macro.mml test.bgm`" = "error(101) line=52: undeclared variable was specified"
 	./vgs2mml ./test/test-normal.mml test.bgm
-	vgs2play test.bgm
+	$(CC) -o test_memchk -I./src -I./vgs-bgm-decoder/src src/vgsmml.c test/test_memchk.c vgs-bgm-decoder/src/miniz.c
+	valgrind --tool=memcheck ./test_memchk
 
