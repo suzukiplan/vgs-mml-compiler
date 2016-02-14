@@ -2,6 +2,7 @@
 
 ## Version 1.05
 - deleted Japanese comments
+- include winsock2.h the previous of windows.h
 
 ## Version 1.04
 - revart: https://github.com/suzukiplan/vgs-mml-compiler/pull/6
