@@ -47,7 +47,7 @@ struct MML {
     int kbase[6];
 };
 
-/* 内部関数 */
+/* internal functions */
 static struct VgsBgmData* phase3(char* buf, int* pos, struct VgsMmlErrorInfo* err);
 static struct VgsBgmData* phase4(struct MML* mml, char* buf, int* pos, struct VgsMmlErrorInfo* err);
 static struct VgsBgmData* phase5(struct Channel* ch0, struct VgsMmlErrorInfo* err);
@@ -368,7 +368,6 @@ static struct VgsBgmData* phase4(struct MML* mml, char* buf, int* pos, struct Vg
         }
     }
 
-    /* 最後にwait0を全チャネルに挿入しておく */
     note.type = NTYPE_WAIT;
     note.op1 = 0;
     note.op2 = 0;
@@ -382,7 +381,6 @@ static struct VgsBgmData* phase4(struct MML* mml, char* buf, int* pos, struct Vg
         }
     }
 
-    /* チャネル合成処理 */
     for (i = 1; i < 6; i++) {
         if (merge(mml, mml->ch[i].head)) {
             strcpy(err->message, "no memory");
@@ -391,7 +389,6 @@ static struct VgsBgmData* phase4(struct MML* mml, char* buf, int* pos, struct Vg
         }
     }
 
-    /* ラベルが存在する場合、wait0をジャンプ命令に置き換える */
     for (i = 0, ch = mml->ch[0].head; ch; ch = ch->next, i++) {
         if (NTYPE_LABEL == ch->note.type) {
             break;
@@ -487,12 +484,10 @@ static struct VgsBgmData* phase6(void* raw, size_t size, struct VgsMmlErrorInfo*
     return result;
 }
 
-/* トリム */
 static void trimstring(char* src)
 {
     int i, j;
     int len;
-    /* 前方の空白をトリム */
     for (i = 0; ' ' == src[i]; i++)
         ;
     if (i) {
@@ -501,23 +496,19 @@ static void trimstring(char* src)
         }
         src[j] = '\0';
     }
-    /* 広報の空白をトリム */
     for (len = (int)strlen(src) - 1; 0 <= len && ' ' == src[len]; len--) {
         src[len] = '\0';
     }
 }
 
-/* 変数名のチェック */
 static int chkmname(char* name)
 {
     int i;
-    /* アルファベット/数字以外は禁止 */
     for (i = 0; name[i]; i++) {
         if (!isalpha(name[i]) && !isdigit(name[i])) {
             return -1;
         }
     }
-    /* 空文字列禁止 */
     if (0 == i) {
         return -1;
     }
@@ -544,7 +535,6 @@ static int cadd(struct MML* mml, int cn, struct _NOTE* note)
     return 0;
 }
 
-/* マクロ追加 */
 static int madd(struct MML* mml, struct VgsMmlErrorInfo* err, int line, char* name, char* value)
 {
     struct MyMacro* mp;
@@ -584,7 +574,6 @@ static int madd(struct MML* mml, struct VgsMmlErrorInfo* err, int line, char* na
 
     mp->next = NULL;
 
-    /* 連結 */
     if (NULL == mml->mtail) {
         mml->mhead = mp;
         mml->mtail = mp;
@@ -595,7 +584,6 @@ static int madd(struct MML* mml, struct VgsMmlErrorInfo* err, int line, char* na
     return 0;
 }
 
-/* チャネル情報の解析 */
 static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, char* fmt)
 {
     int rc = 0;
@@ -609,7 +597,6 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
 
     trimstring(fmt);
 
-    /* 解析領域を確保 */
     if (NULL == (cbuf = (char*)malloc(strlen(fmt) + 1))) {
         strcpy(err->message, "no memory");
         err->code = VGSMML_ERR_NO_MEMORY;
@@ -617,7 +604,6 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
     }
     strcpy(cbuf, fmt);
 
-    /* チャネル番号の範囲チェック */
     if (cn < 0 || 5 < cn) {
         strcpy(err->message, "invalid channel number");
         err->code = VGSMML_ERR_SYNTAX_CHANNEL;
@@ -626,7 +612,6 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
         goto ENDPROC;
     }
 
-    /* マクロ展開処理 */
     while (NULL != (cp = strchr(cbuf, '('))) {
         if (NULL == (cp2 = strchr(cp + 1, ')'))) {
             strcpy(err->message, "there is no \')\' corresponding to \'(\''");
@@ -639,7 +624,6 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
         *cp2 = '\0';
         cp++;
         cp2++;
-        /* 変数名探索 */
         for (mp = mml->mhead; mp; mp = mp->next) {
             if (0 == strcmp(cp, mp->name)) {
                 break;
@@ -652,7 +636,6 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
             rc = 4;
             goto ENDPROC;
         }
-        /* 展開後の長さを計算 */
         i = (int)(strlen(cbuf) + strlen(mp->value) + strlen(cp2));
         if (NULL == (cbuf2 = (char*)malloc(i + 1))) {
             strcpy(err->message, "no memory");
@@ -660,7 +643,6 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
             rc = 255;
             goto ENDPROC;
         }
-        /* 展開後の文字列をcbufにセット */
         strcpy(cbuf2, cbuf);
         strcat(cbuf2, mp->value);
         strcat(cbuf2, cp2);
@@ -668,7 +650,6 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
         cbuf = cbuf2;
     }
 
-    /* 空白を全て削除 */
     trimstring(cbuf);
     while (NULL != (cp = strchr(cbuf, ' '))) {
         for (; *cp != '\0'; cp++) {
@@ -676,17 +657,14 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
         }
     }
 
-    /* 小文字は大文字に変換 */
     for (cp = cbuf; *cp; cp++) {
         if ('a' <= *cp && *cp <= 'z') {
             (*cp) -= 'a' - 'A';
         }
     }
 
-    /* 情報解析 */
     for (cp = cbuf; *cp; cp++) {
-        if ('A' <= *cp && *cp <= 'G') { /* 音符 */
-            /* 音程をnに求める(オクターブ0のAが0となる) */
+        if ('A' <= *cp && *cp <= 'G') {
             n = mml->ch[cn].oct * 12;
             switch (*cp) {
                 case 'C':
@@ -721,7 +699,6 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
             n += mml->kbase[cn];
             if (n < 0) n = 0;
             if (84 < n) n = 84;
-            /* 長さ(分割単位)をi/jに求める */
             cp++;
             i = getval(&cp);
             if (i < 0) {
@@ -736,13 +713,11 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                     j = 0;
                 }
             }
-            /* テンポに対応する長さをkに求める */
             k = mml->tempo / i;
             if (j) {
                 j = i * 2;
                 k += mml->tempo / j;
             }
-            /* タイを加算 */
             while ('^' == *(cp + 1)) {
                 cp += 2;
                 i = getval(&cp);
@@ -758,21 +733,18 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                         j = 0;
                     }
                 }
-                /* タイ分の長さをテンポに対応する長さをkに加算 */
                 k += mml->tempo / i;
                 if (j) {
                     j = i * 2;
                     k += mml->tempo / j;
                 }
             }
-            /* keyon/keyoffの長さをl/mに求める */
             l = k * mml->ch[cn].per / 100;
             m = k - l;
             if (m == 0) {
                 m++;
                 l--;
             }
-            /* keyon/keyoffのノートを追加 */
             note.type = NTYPE_KEYON;
             note.op1 = (unsigned char)cn;
             note.op2 = (unsigned char)mml->ch[cn].tone;
@@ -817,8 +789,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 rc = 255;
                 goto ENDPROC;
             }
-        } else if ('R' == *cp) { /* 休符 */
-            /* 長さ(分割単位)をi/jに求める */
+        } else if ('R' == *cp) {
             cp++;
             i = getval(&cp);
             if (0 == i) {
@@ -839,13 +810,11 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                     j = 0;
                 }
             }
-            /* テンポに対応する長さをkに求める */
             k = mml->tempo / i;
             if (j) {
                 j = i * 2;
                 k += mml->tempo / j;
             }
-            /* WAITノートを設定 */
             note.type = NTYPE_WAIT;
             note.op1 = 0;
             note.op2 = 0;
@@ -857,7 +826,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 rc = 255;
                 goto ENDPROC;
             }
-        } else if ('P' == *cp) { /* ピッチ変化 */
+        } else if ('P' == *cp) {
             cp++;
             if (*cp == '-') {
                 cp++;
@@ -887,7 +856,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 rc = 4;
                 goto ENDPROC;
             }
-        } else if ('\\' == *cp) { /* エンベロープ */
+        } else if ('\\' == *cp) {
             cp++;
             if (*cp == 'S') {
                 cp++;
@@ -938,7 +907,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 rc = 4;
                 goto ENDPROC;
             }
-        } else if ('%' == *cp) { /* キーオン率 */
+        } else if ('%' == *cp) {
             cp++;
             i = getval(&cp);
             if (i < 1 || 100 < i) {
@@ -949,7 +918,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 goto ENDPROC;
             }
             mml->ch[cn].per = i;
-        } else if ('@' == *cp) { /* 音色 */
+        } else if ('@' == *cp) {
             cp++;
             i = getval(&cp);
             if (i < 0) {
@@ -960,7 +929,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 goto ENDPROC;
             }
             mml->ch[cn].tone = i;
-        } else if ('T' == *cp) { /* テンポ */
+        } else if ('T' == *cp) {
             cp++;
             i = getval(&cp);
             if (i < 1) {
@@ -971,7 +940,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 goto ENDPROC;
             }
             mml->tempo = (HZ * 60) / i * 4;
-        } else if ('L' == *cp) { /* 長さ */
+        } else if ('L' == *cp) {
             cp++;
             i = getval(&cp);
             if (i < 1) {
@@ -988,7 +957,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
             } else {
                 mml->ch[cn].huten = 0;
             }
-        } else if ('O' == *cp) { /* オクターブ */
+        } else if ('O' == *cp) {
             cp++;
             i = getval(&cp);
             if (i < 0) {
@@ -999,11 +968,11 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 goto ENDPROC;
             }
             mml->ch[cn].oct = i;
-        } else if ('>' == *cp) { /* 1オクターブ上げる */
+        } else if ('>' == *cp) {
             mml->ch[cn].oct++;
-        } else if ('<' == *cp) { /* 1オクターブ下げる */
+        } else if ('<' == *cp) {
             mml->ch[cn].oct--;
-        } else if ('V' == *cp) { /* ボリューム */
+        } else if ('V' == *cp) {
             cp++;
             if ('+' == *cp || '-' == *cp) {
                 for (; '+' == *cp || '-' == *cp; cp++) {
@@ -1046,7 +1015,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 }
                 mml->ch[cn].vol = i;
             }
-        } else if ('M' == *cp) { /* マスターボリューム */
+        } else if ('M' == *cp) {
             cp++;
             i = getval(&cp);
             if (i < 0) {
@@ -1067,7 +1036,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 rc = 255;
                 goto ENDPROC;
             }
-        } else if ('|' == *cp) { /* ラベル */
+        } else if ('|' == *cp) {
             note.type = NTYPE_LABEL;
             note.op1 = 0;
             note.op2 = 0;
@@ -1079,7 +1048,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 rc = 255;
                 goto ENDPROC;
             }
-        } else if ('K' == *cp) { /* key base */
+        } else if ('K' == *cp) {
             cp++;
             if ('+' == *cp || '-' == *cp) {
                 for (; '+' == *cp || '-' == *cp; cp++) {
@@ -1096,7 +1065,7 @@ static int canl(struct MML* mml, struct VgsMmlErrorInfo* err, int line, int cn, 
                 rc = 4;
                 goto ENDPROC;
             }
-        } else { /* 不明 */
+        } else {
             strcpy(err->message, "unknown operand was specified");
             err->code = VGSMML_ERR_SYNTAX_CHANNEL;
             err->line = line;
@@ -1110,7 +1079,6 @@ ENDPROC:
     return rc;
 }
 
-/* 数値を取り出す */
 static int getval(char** str)
 {
     int n = 0;
@@ -1126,7 +1094,6 @@ static int getval(char** str)
     return n;
 }
 
-/* チャネルのマージ処理 */
 static int merge(struct MML* mml, struct Channel* c2)
 {
     struct Channel* cur;
